@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>gemmy</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <h2>gemmy</h2>
+  <div class="repo-link">github.com/yuvlian/gemmy</div>
+
+  <div class="row">
+    <span>Enable Debugging</span>
+    <label class="switch">
+      <input type="checkbox" id="debug-mode-checkbox" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="row">
+    <span>Trigger Keybind</span>
+    <input type="text" id="trigger-key-input" class="compact-input key-input" maxlength="1" />
+  </div>
+
+  <div class="row">
+    <span>Question Chunk Size</span>
+    <input type="number" id="chunk-size-input" class="compact-input num-input" min="1" max="100" />
+  </div>
+
+  <div class="notice">
+    Thank you amizing25 for the help!
+  </div>
+
+  <script type="module" src="./index.ts"></script>
+</body>
+
+</html>

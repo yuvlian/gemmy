@@ -1,0 +1,15 @@
+{
+  "name": "gemmy",
+  "version": "1.0.0",
+  "description": "https://github.com/yuvlian/gemmy",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node build.js",
+    "watch": "vite build --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "typescript": "^5.5.2",
+    "vite": "^8.0.16"
+  }
+}
