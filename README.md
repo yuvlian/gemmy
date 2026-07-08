@@ -29,6 +29,8 @@ thank you amizing25 for helping me finish this :>
 
   (see the italic text and gray placeholder text)
 
+- you can abort by pressing the abort key (default `x`) + left click. lets say you do `x + left click`, it will revert all html changes & closes gemini tab.
+
 ## misc
 1. **something about errors...**
 
