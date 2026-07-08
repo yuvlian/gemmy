@@ -41,7 +41,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     return;
   }
+
+  if (message.action === 'abortSolving') {
+    const quizTabId = sender.tab?.id;
+    if (quizTabId) {
+      abortSessionsForQuizTab(quizTabId);
+    }
+    return;
+  }
 });
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  for (const [sessionId, session] of activeSessions.entries()) {
+    if (session.geminiTabId === tabId) {
+      logger.log(`Gemini tab ${tabId} was closed manually. Aborting session ${sessionId}.`);
+      if (pendingSolutions.has(tabId)) {
+        const { reject } = pendingSolutions.get(tabId)!;
+        pendingSolutions.delete(tabId);
+        reject(new Error('Gemini tab was closed.'));
+      }
+      cleanupSession(sessionId);
+      session.sendResponse({ error: 'Gemini tab was closed.' });
+    }
+  }
+});
+
+function abortSessionsForQuizTab(quizTabId: number) {
+  logger.log(`Aborting all solving sessions for quiz tab ${quizTabId}`);
+
+  // whatever
+  chrome.tabs.query({ url: 'https://gemini.google.com/*' }, (tabs) => {
+    tabs.forEach((tab) => {
+      if (tab.id) {
+        chrome.tabs.remove(tab.id).catch((err) => {
+          logger.warn(`Failed to close Gemini tab ${tab.id}:`, err);
+        });
+      }
+    });
+  });
+
+  for (const [sessionId, session] of activeSessions.entries()) {
+    if (session.quizTabId === quizTabId) {
+      const { geminiTabId } = session;
+      if (geminiTabId) {
+        if (pendingSolutions.has(geminiTabId)) {
+          const { reject } = pendingSolutions.get(geminiTabId)!;
+          pendingSolutions.delete(geminiTabId);
+          reject(new Error('Solving session aborted by user.'));
+        }
+      }
+      cleanupSession(sessionId);
+      session.sendResponse({ error: 'Solving session aborted by user.' });
+    }
+  }
+}
 
 function waitForSolution(geminiTabId: number, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {

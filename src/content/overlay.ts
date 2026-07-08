@@ -73,8 +73,12 @@ export function applyInputTooltips(
     }
 
     if (input) {
-      (input as HTMLInputElement).placeholder = answer;
-      input.classList.add('ge-mm-y-placeholder');
+      const htmlInput = input as HTMLInputElement;
+      if (htmlInput.placeholder && !htmlInput.dataset.originalPlaceholder) {
+        htmlInput.dataset.originalPlaceholder = htmlInput.placeholder;
+      }
+      htmlInput.placeholder = answer;
+      htmlInput.classList.add('ge-mm-y-placeholder');
     }
   });
 }
@@ -86,6 +90,17 @@ export function clearOverlays() {
     htmlEl.style.fontStyle = '';
     htmlEl.style.fontWeight = '';
     htmlEl.style.color = '';
+  });
+
+  document.querySelectorAll('.ge-mm-y-placeholder').forEach((el) => {
+    const input = el as HTMLInputElement;
+    if (input.dataset.originalPlaceholder) {
+      input.placeholder = input.dataset.originalPlaceholder;
+      delete input.dataset.originalPlaceholder;
+    } else {
+      input.placeholder = '';
+    }
+    input.classList.remove('ge-mm-y-placeholder');
   });
 
   document.querySelectorAll('[data-ge-mm-y-answer]').forEach((el) => {

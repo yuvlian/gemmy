@@ -5,13 +5,19 @@ import { SuggestedAnswer } from '../shared/types';
 import { logger } from '../shared/utils';
 
 let triggerKey = DEFAULT_SETTINGS.TRIGGER_KEY;
+let abortKey = DEFAULT_SETTINGS.ABORT_KEY;
 let isPressed = false;
+let isAbortPressed = false;
 
 // load settings
-chrome.storage.local.get([STORAGE_KEYS.TRIGGER_KEY], (res) => {
+chrome.storage.local.get([STORAGE_KEYS.TRIGGER_KEY, STORAGE_KEYS.ABORT_KEY], (res) => {
   const val = res[STORAGE_KEYS.TRIGGER_KEY];
   if (typeof val === 'string') {
     triggerKey = val.toLowerCase();
+  }
+  const abVal = res[STORAGE_KEYS.ABORT_KEY];
+  if (typeof abVal === 'string') {
+    abortKey = abVal.toLowerCase();
   }
 });
 
@@ -23,11 +29,20 @@ chrome.storage.onChanged.addListener((changes) => {
       triggerKey = val.toLowerCase();
     }
   }
+  if (changes[STORAGE_KEYS.ABORT_KEY]) {
+    const val = changes[STORAGE_KEYS.ABORT_KEY].newValue;
+    if (typeof val === 'string') {
+      abortKey = val.toLowerCase();
+    }
+  }
 });
 
 document.addEventListener('keydown', (e) => {
   if (e.key?.toLowerCase() === triggerKey) {
     isPressed = true;
+  }
+  if (e.key?.toLowerCase() === abortKey) {
+    isAbortPressed = true;
   }
 });
 
@@ -35,10 +50,27 @@ document.addEventListener('keyup', (e) => {
   if (e.key?.toLowerCase() === triggerKey) {
     isPressed = false;
   }
+  if (e.key?.toLowerCase() === abortKey) {
+    isAbortPressed = false;
+  }
 });
+
+function handleAbort() {
+  logger.log('Abort triggered. Reverting overlays and closing Gemini tab.');
+  clearOverlays();
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+    chrome.runtime.sendMessage({ action: 'abortSolving' });
+  }
+}
 
 // intercept left clicks when key is pressed
 document.addEventListener('click', (e) => {
+  if (isAbortPressed) {
+    e.preventDefault();
+    e.stopPropagation();
+    handleAbort();
+    return;
+  }
   if (isPressed) {
     e.preventDefault();
     e.stopPropagation();
